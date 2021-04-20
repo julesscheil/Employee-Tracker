@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 const util = require("util");
+
 // create the connection information for the sql database
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -12,7 +13,9 @@ const connection = mysql.createConnection({
     password: 'Chessie1!',
     database: 'employee_DB',
 });
+
 connection.promisifiedQuery = util.promisify(connection.query);
+
 const employeeTrack = () => {
     inquirer
         .prompt({
@@ -89,56 +92,50 @@ const viewEmployees = () => {
 }
 
 const addEmployee = () => {
-    const roleArray = await getRoleArray();
-    const managerArray = await getManagerArray();
-    inquirer.prompt([{
-            name: 'first_name',
-            type: 'input',
-            message: 'What is their first name?',
-        },
-        {
-            name: 'last_name',
-            type: 'input',
-            message: 'What is their last name?',
-        },
-        {
-            name: 'role_id',
-            type: 'list',
-            message: 'What is their role?',
-            choices: roleArray,
-        },
-        {
-            name: 'manager_name',
+    connection.query("SELECT id, title FROM role", (err, res) => {
+      if (err) throw err;
+      const role = res.map((role) => {
+        return {
+          name: role.title,
+          value: role.id,
+        };
+      });
+      inquirer
+        .prompt([
+          {
+            name: "first_name",
+            type: "input",
+            message: "What is their first name:",
+          },
+          {
+            name: "last_name",
+            type: "last",
+            message: "What is their last name:",
+          },
+          {
+            name: "role",
             type: "list",
-            message: "What is their manager?",
-            choices: managerArray,
-        }
-    ]).then(({ answer }) => {
-        connection.query(
-            "INSERT INTO employee SET ?", 
-            {
-                first_name: answer.first_name,
-                last_name: answer.last_name,
-                role_id: answer.role_id,
-                manager_id: answer.manager_name
-            },
+            message: "What is their role:",
+            choices: role,
+          },
+          {
+            name: "manager",
+            type: "input",
+            message: "Who is their manager:",
+          },
+        ])
+        .then((answers) => {
+          connection.query(
+            `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answers.first_name}", "${answers.last_name}", ${answers.role}, ${answers.manager})`,
             (err, data) => {
-                if (err) throw err;
-                connection.query(
-                    "SELECT * FROM employee WHERE   ?",
-                    [answer],
-                    (err, data) => {
-                        if (err) throw err;
-                        console.log(
-                            `\nYour role is now removed.\n`
-                        );
-                        employeeTrack();
-                    }
-                );
+              if (err) throw err;
+              console.log("New employee added!");
+              employeeTrack();
             }
-        );
+          );
+        });
     });
-};
+  };
 
 // const viewByManager = () => {
 //     connection.query(
@@ -160,17 +157,7 @@ const getRoleArray = async () => {
         };
     });
 };
-const getManagerArray = async () => {
-    const managerArray = await connection.promisifiedQuery(
-        "select *, concat(b.first_name, b.last_name) as managerName from employee a inner join employee b on a.manager_id = b.id;"
-    );
-    return managerArray.map((manager) => {
-        return {
-            name: manager.manager_name,
-            value: manager.manager_id,
-        };
-    });
-};
+
 const removeRole = async () => {
     const roleArray = await getRoleArray();
     inquirer
@@ -189,17 +176,6 @@ const removeRole = async () => {
                 },
                 (err, data) => {
                     if (err) throw err;
-                    connection.query(
-                        "SELECT title FROM role WHERE title = ?",
-                        [removeRole],
-                        (err, data) => {
-                            if (err) throw err;
-                            console.log(
-                                `\nYour role is now removed.\n`
-                            );
-                            employeeTrack();
-                        }
-                    );
                 }
             );
         });
