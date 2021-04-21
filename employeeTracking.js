@@ -307,7 +307,7 @@ const removeDepartments =  () => {
                 type: "list",
                 name: "removeDepartment",
                 choices: dept,
-                message: "Which role would you like to remove?",
+                message: "Which department would you like to remove?",
             }, ])
             .then((answers) => {
                 connection.query(
