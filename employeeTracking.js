@@ -24,13 +24,11 @@ const employeeTrack = () => {
             message: 'What would you like to do?',
             choices: [
                 'View all Employees',
-                'View all Employees by Manager',
                 'Add Employee',
                 'Remove Employee',
-                'Update Role',
-                'Update Employee Manager',
                 'View Roles',
                 'Add Role',
+                'Update Role',                
                 'Remove Role',
                 'View Departments',
                 'Add Departments',
@@ -49,14 +47,14 @@ const employeeTrack = () => {
                 case 'Remove Employee':
                     removeEmployee();
                     break;
-                case 'Update Role':
-                    updateRole();
-                    break;
-                case 'View Roles':
+                 case 'View Roles':
                     viewRoles();
                     break;
                 case 'Add Role':
                     addRole();
+                    break;   
+                case 'Update Role':
+                    updateRole();
                     break;
                 case 'Remove Role':
                     removeRole();
@@ -252,15 +250,7 @@ const addDepartment = () => {
             );
         });
 };
-// const viewByManager = () => {
-//     connection.query(
-//         'select a.id, a.first_name, a.last_name, title, department_id, salary, d.concatName from employee_db.employee a left join employee_db.role b on a.role_id=b.id left join employee_db.department c on b.department_id=c.id left join ( select a.first_name, a.last_name, concat(b.first_name,b.last_name) as concatName, a.manager_id,a.id from employee_db.employee a inner join employee_db.employee b on a.manager_id=b.id) d on a.id =d.id',
-//         (err, res) => {
-//             if (err) throw err;
-//             console.table(res);
-//             employeeTrack();
-//         })
-// }
+
 const getRoleArray = async () => {
     const roleArray = await connection.promisifiedQuery(
         "SELECT * FROM role"
@@ -291,41 +281,72 @@ const removeRole = async () => {
                 },
                 (err, data) => {
                     if (err) throw err;
+                    console.log("Role Removed!");
+                        employeeTrack();
                 }
             );
         });
 };
 
-const removeDepartments = async () => {
-            connection.query("SELECT id, name FROM department", (err, res) => {
-                    if (err) throw err;
-                    const dept = res.map((department) => {
-                        return {
-                            name: department.name,
-                            value: department.id,
-                        };
-                    });
-                    inquirer
-                        .prompt([{
-                            type: "list",
-                            name: "removeDepartment",
-                            choices: dept,
-                            message: "Which role would you like to remove?",
-                        }, ])
-                        .then((answers) => {
-                            connection.query(
-                                `DELETE FROM department WHERE id = ${answers.removeDepartment}`,
-                                (err, data) => {
-                                    if (err) throw err;
-                                    console.log("Department Removed!");
-                                    employeeTrack();
-                                }
-                            );
-                        });
-                    });
+const removeDepartments =  () => {
+    connection.query("SELECT id, name FROM department", (err, res) => {
+        if (err) throw err;
+        const dept = res.map((department) => {
+            return {
+                name: department.name,
+                value: department.id,
             };
-
-            connection.connect((err) => {
-                if (err) throw err;
-                employeeTrack();
+        });
+        inquirer
+            .prompt([{
+                type: "list",
+                name: "removeDepartment",
+                choices: dept,
+                message: "Which role would you like to remove?",
+            }, ])
+            .then((answers) => {
+                connection.query(
+                    `DELETE FROM department WHERE id = ${answers.removeDepartment}`,
+                    (err, data) => {
+                        if (err) throw err;
+                        console.log("Department Removed!");
+                        employeeTrack();
+                    }
+                );
             });
+    });
+};
+
+const removeEmployee =  () => {
+    connection.query("SELECT id, concat(first_name, \" \", last_name) as empName FROM employee", (err, res) => {
+        if (err) throw err;
+        const empl = res.map((employee) => {
+            return {
+                name: employee.empName,
+                value: employee.id,
+            };
+        });
+        inquirer
+            .prompt([{
+                type: "list",
+                name: "removeEmployee",
+                choices: empl,
+                message: "Which employee would you like to remove?",
+            }, ])
+            .then((answers) => {
+                connection.query(
+                    `DELETE FROM employee WHERE id = ${answers.removeEmployee}`,
+                    (err, data) => {
+                        if (err) throw err;
+                        console.log("Employee Removed!");
+                        employeeTrack();
+                    }
+                );
+            });
+    });
+};
+
+connection.connect((err) => {
+    if (err) throw err;
+    employeeTrack();
+});
