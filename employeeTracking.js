@@ -49,9 +49,9 @@ const employeeTrack = () => {
                 case 'Remove Employee':
                     removeEmployee();
                     break;
-                    //     case 'Update Role':
-                    //         updateRole();
-                    //         break;
+                case 'Update Role':
+                    updateRole();
+                    break;
                     //     case 'Update Manager':
                     //         updateManager();
                 case 'View Roles':
@@ -191,6 +191,52 @@ const addRole = () => {
             });
     });
 };
+
+const updateRole = () => {
+    // Query to get department names
+    connection.query("select*,a.id as empID, concat(first_name, \" \", last_name) as concatName from employee a left join role b on a.role_id = b.id", (err, res) => {
+        if (err) throw err;
+        const employeeUpdate = res.map((employeeUpdate) => {
+            return {
+                name: employeeUpdate.concatName,
+                value: employeeUpdate.empID,
+            };
+        });
+        const roleUpdate = res.map((roleUpdate) => {
+            return {
+                name: roleUpdate.title,
+                value: roleUpdate.id,
+            };
+        });
+        inquirer
+            .prompt([
+                {
+                    name: "employee",
+                    type: "list",
+                    message: "What employee do you want to update:",
+                    choices: employeeUpdate,
+                },
+                {
+                    name: "newRole",
+                    type: "list",
+                    message: "What role do you want to give them?",
+                    choices: roleUpdate,
+                },
+               
+            ])
+            .then((answers) => {
+                connection.query(
+                    `UPDATE employee SET role_id = ${answers.newRole} where employee.id = ${answers.employee}`,
+                    (err, data) => {
+                        if (err) throw err;
+                        console.log("Role updated!");
+                        employeeTrack();
+                    }
+                );
+            });
+    });
+};
+
 const addDepartment = () => {
     inquirer
         .prompt([{
