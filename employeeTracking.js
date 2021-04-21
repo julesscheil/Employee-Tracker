@@ -49,9 +49,9 @@ const employeeTrack = () => {
                 case 'Add Employee':
                     addEmployee();
                     break;
-                    //     case 'Remove Employee':
-                    //         removeEmployee();
-                    //         break;
+                case 'Remove Employee':
+                    removeEmployee();
+                    break;
                     //     case 'Update Role':
                     //         updateRole();
                     //         break;
@@ -60,9 +60,9 @@ const employeeTrack = () => {
                     //     case 'View Roles':
                     //         viewRoles();
                     //         break;
-                    //     case 'Add Role':
-                    //         addRole();
-                    //         break;
+                case 'Add Role':
+                    addRole();
+                    break;
                 case 'Remove Role':
                     removeRole();
                     break;
@@ -93,50 +93,88 @@ const viewEmployees = () => {
 
 const addEmployee = () => {
     connection.query("SELECT id, title FROM role", (err, res) => {
-      if (err) throw err;
-      const role = res.map((role) => {
-        return {
-          name: role.title,
-          value: role.id,
-        };
-      });
-      inquirer
-        .prompt([
-          {
-            name: "first_name",
-            type: "input",
-            message: "What is their first name:",
-          },
-          {
-            name: "last_name",
-            type: "last",
-            message: "What is their last name:",
-          },
-          {
-            name: "role",
-            type: "list",
-            message: "What is their role:",
-            choices: role,
-          },
-          {
-            name: "manager",
-            type: "input",
-            message: "Who is their manager:",
-          },
-        ])
-        .then((answers) => {
-          connection.query(
-            `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answers.first_name}", "${answers.last_name}", ${answers.role}, ${answers.manager})`,
-            (err, data) => {
-              if (err) throw err;
-              console.log("New employee added!");
-              employeeTrack();
-            }
-          );
+        if (err) throw err;
+        const role = res.map((role) => {
+            return {
+                name: role.title,
+                value: role.id,
+            };
         });
+        inquirer
+            .prompt([{
+                    name: "first_name",
+                    type: "input",
+                    message: "What is their first name:",
+                },
+                {
+                    name: "last_name",
+                    type: "input",
+                    message: "What is their last name:",
+                },
+                {
+                    name: "role",
+                    type: "list",
+                    message: "What is their role:",
+                    choices: role,
+                },
+                {
+                    name: "manager",
+                    type: "input",
+                    message: "Who is their manager(id format):",
+                },
+            ])
+            .then((answers) => {
+                connection.query(
+                    `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answers.first_name}", "${answers.last_name}", ${answers.role}, ${answers.manager})`,
+                    (err, data) => {
+                        if (err) throw err;
+                        console.log("New employee added!");
+                        employeeTrack();
+                    }
+                );
+            });
     });
-  };
-
+};
+const addRole = () => {
+    // Query to get department names
+    connection.query("SELECT id, name FROM department", (err, res) => {
+        if (err) throw err;
+        const dept = res.map((department) => {
+            return {
+                name: department.name,
+                value: department.id,
+            };
+        });
+        inquirer
+            .prompt([{
+                    name: "title",
+                    type: "input",
+                    message: "What is the new role:",
+                },
+                {
+                    name: "salary",
+                    type: "input",
+                    message: "What is the salary:",
+                },
+                {
+                    name: "department",
+                    type: "list",
+                    message: "What department:",
+                    choices: dept,
+                },
+            ])
+            .then((answers) => {
+                connection.query(
+                    `INSERT INTO role (title, salary, department_id) VALUES ("${answers.title}", ${answers.salary}, ${answers.department})`,
+                    (err, data) => {
+                        if (err) throw err;
+                        console.log("New role added!");
+                        employeeTrack();
+                    }
+                );
+            });
+    });
+};
 // const viewByManager = () => {
 //     connection.query(
 //         'select a.id, a.first_name, a.last_name, title, department_id, salary, d.concatName from employee_db.employee a left join employee_db.role b on a.role_id=b.id left join employee_db.department c on b.department_id=c.id left join ( select a.first_name, a.last_name, concat(b.first_name,b.last_name) as concatName, a.manager_id,a.id from employee_db.employee a inner join employee_db.employee b on a.manager_id=b.id) d on a.id =d.id',
