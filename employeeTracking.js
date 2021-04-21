@@ -1,3 +1,4 @@
+// require packages
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 const util = require("util");
@@ -5,17 +6,20 @@ const util = require("util");
 // create the connection information for the sql database
 const connection = mysql.createConnection({
     host: 'localhost',
-    // Your port; if not 3306
+    // port
     port: 3306,
-    // Your username
+    // username
     user: 'root',
-    // Your password
+    // password
     password: 'Chessie1!',
+    // database to connect to
     database: 'employee_DB',
 });
 
+// promisify query for later use
 connection.promisifiedQuery = util.promisify(connection.query);
 
+// main function to prompt use around the database
 const employeeTrack = () => {
     inquirer
         .prompt({
@@ -36,6 +40,7 @@ const employeeTrack = () => {
             ]
         })
         .then((answer) => {
+            // based on the response, where should it go next
             console.log(answer.action);
             switch (answer.action) {
                 case 'View all Employees':
@@ -76,7 +81,7 @@ const employeeTrack = () => {
 }
 const viewEmployees = () => {
     connection.query(
-        'select a.id, a.first_name, a.last_name, title, department_id, salary, d.concatName from employee_db.employee a left join employee_db.role b on a.role_id=b.id left join employee_db.department c on b.department_id=c.id left join ( select a.first_name, a.last_name, concat(b.first_name,b.last_name) as concatName, a.manager_id,a.id from employee_db.employee a inner join employee_db.employee b on a.manager_id=b.id) d on a.id =d.id',
+        'select a.id, a.first_name, a.last_name, title, department_id, salary, d.managerName from employee_db.employee a left join employee_db.role b on a.role_id=b.id left join employee_db.department c on b.department_id=c.id left join ( select a.first_name, a.last_name, concat(b.first_name, \" \",b.last_name) as managerName, a.manager_id,a.id from employee_db.employee a inner join employee_db.employee b on a.manager_id=b.id) d on a.id =d.id',
         (err, res) => {
             if (err) throw err;
             console.table(res);
