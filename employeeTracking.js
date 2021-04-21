@@ -43,9 +43,6 @@ const employeeTrack = () => {
                 case 'View all Employees':
                     viewEmployees();
                     break;
-                    // case 'View all Employees by Manager':
-                    //     viewByManager();
-                    //     break;
                 case 'Add Employee':
                     addEmployee();
                     break;
@@ -57,9 +54,9 @@ const employeeTrack = () => {
                     //         break;
                     //     case 'Update Manager':
                     //         updateManager();
-                    //     case 'View Roles':
-                    //         viewRoles();
-                    //         break;
+                case 'View Roles':
+                    viewRoles();
+                    break;
                 case 'Add Role':
                     addRole();
                     break;
@@ -69,9 +66,9 @@ const employeeTrack = () => {
                     // case 'View Departments':
                     //     viewDepartments();
                     //     break;
-                    // case 'Add Departments':
-                    //     addDepartments();
-                    //     break;
+                case 'Add Departments':
+                    addDepartment();
+                    break;
                     // case 'Remove Departments':
                     //     removeDepartments();
                     //     break;
@@ -90,7 +87,15 @@ const viewEmployees = () => {
             employeeTrack();
         })
 }
-
+const viewRoles = () => {
+    connection.query(
+        'select * from role',
+        (err, res) => {
+            if (err) throw err;
+            console.table(res);
+            employeeTrack();
+        })
+}
 const addEmployee = () => {
     connection.query("SELECT id, title FROM role", (err, res) => {
         if (err) throw err;
@@ -174,6 +179,24 @@ const addRole = () => {
                 );
             });
     });
+};
+const addDepartment = () => {
+    inquirer
+        .prompt([{
+            name: "title",
+            type: "input",
+            message: "What is the new department:",
+        }, ])
+        .then((answers) => {
+            connection.query(
+                `INSERT INTO department (name) VALUES ("${answers.title}")`,
+                (err, data) => {
+                    if (err) throw err;
+                    console.log("New department added!");
+                    employeeTrack();
+                }
+            );
+        });
 };
 // const viewByManager = () => {
 //     connection.query(
