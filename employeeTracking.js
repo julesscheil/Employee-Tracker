@@ -63,9 +63,9 @@ const employeeTrack = () => {
                 case 'Remove Role':
                     removeRole();
                     break;
-                    // case 'View Departments':
-                    //     viewDepartments();
-                    //     break;
+                case 'View Departments':
+                    viewDepartments();
+                    break;
                 case 'Add Departments':
                     addDepartment();
                     break;
@@ -96,6 +96,17 @@ const viewRoles = () => {
             employeeTrack();
         })
 }
+
+const viewDepartments = () => {
+    connection.query(
+        'select * from department',
+        (err, res) => {
+            if (err) throw err;
+            console.table(res);
+            employeeTrack();
+        })
+}
+
 const addEmployee = () => {
     connection.query("SELECT id, title FROM role", (err, res) => {
         if (err) throw err;
