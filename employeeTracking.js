@@ -52,8 +52,6 @@ const employeeTrack = () => {
                 case 'Update Role':
                     updateRole();
                     break;
-                    //     case 'Update Manager':
-                    //         updateManager();
                 case 'View Roles':
                     viewRoles();
                     break;
@@ -69,9 +67,9 @@ const employeeTrack = () => {
                 case 'Add Departments':
                     addDepartment();
                     break;
-                    // case 'Remove Departments':
-                    //     removeDepartments();
-                    //     break;
+                case 'Remove Departments':
+                    removeDepartments();
+                    break;
                 default:
                     console.log(`Invalid action: ${answer.action}`);
                     break;
@@ -209,8 +207,7 @@ const updateRole = () => {
             };
         });
         inquirer
-            .prompt([
-                {
+            .prompt([{
                     name: "employee",
                     type: "list",
                     message: "What employee do you want to update:",
@@ -222,7 +219,7 @@ const updateRole = () => {
                     message: "What role do you want to give them?",
                     choices: roleUpdate,
                 },
-               
+
             ])
             .then((answers) => {
                 connection.query(
@@ -298,7 +295,37 @@ const removeRole = async () => {
             );
         });
 };
-connection.connect((err) => {
-    if (err) throw err;
-    employeeTrack();
-});
+
+const removeDepartments = async () => {
+            connection.query("SELECT id, name FROM department", (err, res) => {
+                    if (err) throw err;
+                    const dept = res.map((department) => {
+                        return {
+                            name: department.name,
+                            value: department.id,
+                        };
+                    });
+                    inquirer
+                        .prompt([{
+                            type: "list",
+                            name: "removeDepartment",
+                            choices: dept,
+                            message: "Which role would you like to remove?",
+                        }, ])
+                        .then((answers) => {
+                            connection.query(
+                                `DELETE FROM department WHERE id = ${answers.removeDepartment}`,
+                                (err, data) => {
+                                    if (err) throw err;
+                                    console.log("Department Removed!");
+                                    employeeTrack();
+                                }
+                            );
+                        });
+                    });
+            };
+
+            connection.connect((err) => {
+                if (err) throw err;
+                employeeTrack();
+            });
